@@ -83,27 +83,34 @@ class WireframeViewer(wf.WireframeGroup):
                         specular_G = k_s * self.light_color[1] * colour[1] * ((np.dot(self.view_vector, r)) ** k_gls)
                         specular_B = k_s * self.light_color[2] * colour[2] * ((np.dot(self.view_vector, r)) ** k_gls)
 
-                        specular_R = np.clip(specular_R, 0, 255)
-                        specular_G = np.clip(specular_G, 0, 255)
-                        specular_B = np.clip(specular_B, 0, 255)
+                        specular_R = np.clip(specular_R, 0.0, 255.0)
+                        specular_G = np.clip(specular_G, 0.0, 255.0)
+                        specular_B = np.clip(specular_B, 0.0, 255.0)
 
                         specular_RGB = [specular_R, specular_G, specular_B]
 
                         # Diffuse Reflection
                         k_d = 0.5 # Diffuse coefficient
+                        
+                        dot_product = np.dot(normal, self.light_vector)
+                        if dot_product > 0:
+                            diffuse_R = k_d * self.light_color[0] * colour[0] * dot_product
+                            diffuse_G = k_d * self.light_color[1] * colour[1] * dot_product
+                            diffuse_B = k_d * self.light_color[2] * colour[2] * dot_product
+                        else: 
+                            diffuse_R = 0
+                            diffuse_G = 0
+                            diffuse_B = 0
 
-                        diffuse_R = k_d * self.light_color[0] * colour[0] * (np.dot(normal, self.light_vector))
-                        diffuse_G = k_d * self.light_color[1] * colour[1] * (np.dot(normal, self.light_vector))
-                        diffuse_B = k_d * self.light_color[2] * colour[2] * (np.dot(normal, self.light_vector))
-
-                        diffuse_R = np.clip(diffuse_R, 0, 255)
-                        diffuse_G = np.clip(diffuse_G, 0, 255)
-                        diffuse_B = np.clip(diffuse_B, 0, 255)
+                        diffuse_R = np.clip(diffuse_R, 0.0, 255.0)
+                        diffuse_G = np.clip(diffuse_G, 0.0, 255.0)
+                        diffuse_B = np.clip(diffuse_B, 0.0, 255.0)
 
                         diffuse_RGB = [diffuse_R, diffuse_G, diffuse_B]
 
 						#Once you have implemented diffuse and specular lighting, you will want to include them here
                         light_total = ambient + specular_RGB + diffuse_RGB
+                        light_total = np.clip(light_total, 0.0, 255.0)
 
                         pygame.draw.polygon(self.screen, light_total, [(nodes[node][0], nodes[node][1]) for node in face], 0)
 
@@ -129,32 +136,67 @@ class WireframeViewer(wf.WireframeGroup):
         
         pygame.display.flip()
 
+    def rotate_x(self, deg):
+        deg = math.radians(deg)
+        light_hom = np.array([[self.light_vector[0]], [self.light_vector[1]], [self.light_vector[2]], [1]])
+        rot_x = np.array([[1, 0,           0,            0],
+                          [0, np.cos(deg), -np.sin(deg), 0],
+                          [0, np.sin(deg), np.cos(deg),  0],
+                          [0, 0,           0,            1]])
+
+        new_m = rot_x @ light_hom
+        self.light_vector = np.array([new_m[0][0], new_m[1][0], new_m[2][0]])
+
+    def rotate_y(self, deg):
+        deg = math.radians(deg)
+        light_hom = np.array([[self.light_vector[0]], [self.light_vector[1]], [self.light_vector[2]], [1]])
+        rot_y = np.array([[np.cos(deg),  0, np.sin(deg), 0],
+                          [0,            1, 0,           0],
+                          [-np.sin(deg), 0, np.cos(deg), 0],
+                          [0,            0, 0,           1]])
+
+        new_m = rot_y @ light_hom
+        self.light_vector = np.array([new_m[0][0], new_m[1][0], new_m[2][0]])
+
+    def rotate_z(self, deg):
+        deg = math.radians(deg)
+        light_hom = np.array([[self.light_vector[0]], [self.light_vector[1]], [self.light_vector[2]], [1]])
+        rot_z = np.array([[np.cos(deg), -np.sin(deg), 0, 0],
+                          [np.sin(deg), np.cos(deg),  0, 0],
+                          [0,           0,            1, 0],
+                          [0,           0,            0, 1]])
+
+        new_m = rot_z @ light_hom
+        self.light_vector = np.array([new_m[0][0], new_m[1][0], new_m[2][0]])
+        
+
     def keyEvent(self, key):
+        rotate_speed = 3.0
         
         #Your code here
         # Rotate up (around x-axis)
         if key == pygame.K_w:
-            print("w is pressed")
+            self.rotate_x(-rotate_speed)
 
         # Rotate down (around x-axis)
         if key == pygame.K_s:
-            print("s is pressed")
+            self.rotate_x(rotate_speed)
 
         # Rotate left (around y-axis)
         if key == pygame.K_a:
-            print("a is pressed")
+            self.rotate_y(rotate_speed)
 
         # Rotate right (around y-asix)
         if key == pygame.K_d:
-            print("d is pressed")
+            self.rotate_y(-rotate_speed)
 
         # Rotate ccw (around z-axis)
         if key == pygame.K_q:
-            print("q is pressed")
+            self.rotate_z(-2*rotate_speed)
 
         # Rotate cw (around z-axis)
         if key == pygame.K_e:
-            print("e is pressed")
+            self.rotate_z(2*rotate_speed)
 
 
 
