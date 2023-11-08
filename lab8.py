@@ -72,19 +72,38 @@ class WireframeViewer(wf.WireframeGroup):
                         #Make note of the self.view_vector and self.light_vector 
                         #Use the Phong model
 
+                        # r = 2(l*n)n-l
+                        r = 2*(np.dot(self.light_vector, normal))*normal - self.light_vector
 
+                        # Specular Reflection
+                        k_s = 0.5 # Specular coefficient
+                        k_gls = 5.0 # Glossiness
 
+                        specular_R = k_s * self.light_color[0] * colour[0] * ((np.dot(self.view_vector, r)) ** k_gls)
+                        specular_G = k_s * self.light_color[1] * colour[1] * ((np.dot(self.view_vector, r)) ** k_gls)
+                        specular_B = k_s * self.light_color[2] * colour[2] * ((np.dot(self.view_vector, r)) ** k_gls)
 
+                        specular_R = np.clip(specular_R, 0, 255)
+                        specular_G = np.clip(specular_G, 0, 255)
+                        specular_B = np.clip(specular_B, 0, 255)
 
+                        specular_RGB = [specular_R, specular_G, specular_B]
 
+                        # Diffuse Reflection
+                        k_d = 0.5 # Diffuse coefficient
 
+                        diffuse_R = k_d * self.light_color[0] * colour[0] * (np.dot(normal, self.light_vector))
+                        diffuse_G = k_d * self.light_color[1] * colour[1] * (np.dot(normal, self.light_vector))
+                        diffuse_B = k_d * self.light_color[2] * colour[2] * (np.dot(normal, self.light_vector))
 
+                        diffuse_R = np.clip(diffuse_R, 0, 255)
+                        diffuse_G = np.clip(diffuse_G, 0, 255)
+                        diffuse_B = np.clip(diffuse_B, 0, 255)
 
-
-
+                        diffuse_RGB = [diffuse_R, diffuse_G, diffuse_B]
 
 						#Once you have implemented diffuse and specular lighting, you will want to include them here
-                        light_total = ambient
+                        light_total = ambient + specular_RGB + diffuse_RGB
 
                         pygame.draw.polygon(self.screen, light_total, [(nodes[node][0], nodes[node][1]) for node in face], 0)
 
@@ -113,9 +132,29 @@ class WireframeViewer(wf.WireframeGroup):
     def keyEvent(self, key):
         
         #Your code here
+        # Rotate up (around x-axis)
         if key == pygame.K_w:
             print("w is pressed")
 
+        # Rotate down (around x-axis)
+        if key == pygame.K_s:
+            print("s is pressed")
+
+        # Rotate left (around y-axis)
+        if key == pygame.K_a:
+            print("a is pressed")
+
+        # Rotate right (around y-asix)
+        if key == pygame.K_d:
+            print("d is pressed")
+
+        # Rotate ccw (around z-axis)
+        if key == pygame.K_q:
+            print("q is pressed")
+
+        # Rotate cw (around z-axis)
+        if key == pygame.K_e:
+            print("e is pressed")
 
 
 
